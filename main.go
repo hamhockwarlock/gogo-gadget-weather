@@ -1,44 +1,22 @@
 package main
 
 import (
-	"encoding/json"
+	"log"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
 )
 
-func Router() *chi.Mux {
-  r := chi.NewRouter()
-
-  setupMiddleware(r)
-  addRoutes(r)
-
-  return r
-}
-
 func main() {
-  r := Router()
-  http.ListenAndServe(":4242", r)
+	if err := run(); err != nil {
+		log.Fatalf("Error running http server: %s\n", err)
+	}
 }
 
-func WeatherHandler(w http.ResponseWriter, r *http.Request) {
-  lat := r.URL.Query().Get("lat")
-  long := r.URL.Query().Get("long")
-  
-  response := WeatherResponse{
-    Latitude: lat,
-    Longitude: long,
-    Message: "Just testing",
-  }
+func run() error {
+	r := router()
+	err := http.ListenAndServe(":4242", r)
+	if err != nil {
+		return err
+	}
 
-  w.Header().Set("Content-Type", "application/json")
-  json.NewEncoder(w).Encode(response)
+	return nil
 }
-
-type WeatherResponse struct {
-  Latitude  string `json:"latitude"`
-  Longitude string `json:"longitude"`
-  Message   string `json:"message"`
-}
-
-func run() {}

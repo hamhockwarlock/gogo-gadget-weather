@@ -5,5 +5,5 @@ import (
 )
 
 func addRoutes(r *chi.Mux) {
-  r.Get("/api/weather", WeatherHandler)
+	r.Get("/api/weather", handleWeatherGet)
 }
