@@ -7,7 +7,6 @@ import (
 	"testing"
 )
 
-// TestHandleNotFound
 func TestHandleNotFound(t *testing.T) {
   uri := "/api/nope"
   req := httptest.NewRequest("GET", uri, nil)

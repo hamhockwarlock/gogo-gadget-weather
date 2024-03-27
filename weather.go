@@ -7,6 +7,13 @@ import (
 	"strconv"
 )
 
+const(
+  mustBeNumericMessage = "must be numeric value"
+  isRequiredMessage = "is required"
+  latitudeRangeMessage = "latitude must be between -90.0 and 90.0"
+  longitudeRangeMessage = "longitude must be between -180.0 and 180"
+)
+
 type Weather struct {
 	Condition   string `json:"condition"`
 	Temperature string `json:"temperature"`
@@ -53,16 +60,16 @@ func handleWeatherGet(w http.ResponseWriter, r *http.Request) {
 
 func validateLatitude(value string) error {
 	if value == "" {
-		return fmt.Errorf("latitude is required")
+		return fmt.Errorf("latitude %s", isRequiredMessage)
 	}
 
 	lat, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		return fmt.Errorf("latitude must be a numeric value")
+		return fmt.Errorf("latitude %s", mustBeNumericMessage)
 	}
 
 	if lat < -90 || lat > 90 {
-		return fmt.Errorf("latitude must be between -90.0 and 90.0")
+		return fmt.Errorf(latitudeRangeMessage)
 	}
 
 	return nil
@@ -70,16 +77,16 @@ func validateLatitude(value string) error {
 
 func validateLongitude(value string) error {
 	if value == "" {
-		return fmt.Errorf("longitude is required")
+		return fmt.Errorf("longitude %s", isRequiredMessage)
 	}
 
 	long, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		return fmt.Errorf("longitude must be a numeric value")
+		return fmt.Errorf("longitude %s", mustBeNumericMessage)
 	}
 
 	if long < -180 || long > 180 {
-		return fmt.Errorf("longitude must be between -90.0 and 90.0")
+		return fmt.Errorf(longitudeRangeMessage)
 	}
 
 	return nil
