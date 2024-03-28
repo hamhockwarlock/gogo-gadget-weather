@@ -64,7 +64,6 @@ func (wtr weather) HandleWeatherGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// this can be removed
 	apiKey := r.Header.Get("X-API-KEY")
 	response, err := wtr.OpenWeatherMap.FetchWeather(ctx, lat, long, apiKey)
 	if err != nil {
