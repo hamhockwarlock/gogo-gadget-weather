@@ -21,7 +21,12 @@ func setupMiddleware(r *chi.Mux) {
 func apiKeyRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get(apiKeyHeaderName) == "" {
-			apiError(w, apiKeyRequiredMessage, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+			apiError(
+				w,
+				apiKeyRequiredMessage,
+				http.StatusUnauthorized,
+				http.StatusText(http.StatusUnauthorized),
+			)
 			return
 		}
 

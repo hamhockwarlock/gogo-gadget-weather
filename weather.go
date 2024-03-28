@@ -7,11 +7,12 @@ import (
 	"strconv"
 )
 
-const(
-  mustBeNumericMessage = "must be numeric value"
-  isRequiredMessage = "is required"
-  latitudeRangeMessage = "latitude must be between -90.0 and 90.0"
-  longitudeRangeMessage = "longitude must be between -180.0 and 180"
+const (
+	mustBeNumericMessage  = "must be numeric value"
+	isRequiredMessage     = "is required"
+	latitudeRangeMessage  = "latitude must be between -90.0 and 90.0"
+	longitudeRangeMessage = "longitude must be between -180.0 and 180"
+	defaultCondition      = "Can't determine condition"
 )
 
 type Weather struct {
@@ -43,7 +44,12 @@ func handleWeatherGet(w http.ResponseWriter, r *http.Request) {
 		// and return a generic message
 		log.Println("Error when fetching weather: " + err.Error())
 		message := "Error processing your request. Please try again or open a support ticket"
-		apiError(w, message, http.StatusUnprocessableEntity, http.StatusText(http.StatusUnprocessableEntity))
+		apiError(
+			w,
+			message,
+			http.StatusUnprocessableEntity,
+			http.StatusText(http.StatusUnprocessableEntity),
+		)
 		return
 	}
 
@@ -93,7 +99,7 @@ func validateLongitude(value string) error {
 }
 
 func formatOpenWeatherResponse(r OpenWeatherApiResponse) WeatherResponse {
-	condition := "Can't determine condition"
+	condition := defaultCondition
 	if len(r.Weather) > 0 {
 		condition = r.Weather[0].Description
 	}
