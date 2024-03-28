@@ -1,7 +1,9 @@
-package main
+package weather
 
 import (
 	"fmt"
+	"gogo-gadget-weather/openweathermap"
+	"gogo-gadget-weather/test"
 	"testing"
 )
 
@@ -14,7 +16,7 @@ func TestLatitudeThatIsUncoercable(t *testing.T) {
 	expectedError := fmt.Sprintf("latitude %s", mustBeNumericMessage)
 
 	if err := validateLatitude(valueThatCannotBeCoerced); err.Error() != expectedError {
-		t.Errorf("returned the wrong message: got %s want %s", err.Error(), expectedError)
+		test.Fatal(t, err.Error(), expectedError)
 	}
 }
 
@@ -22,7 +24,7 @@ func TestLongitudeThatIsUncoercable(t *testing.T) {
 	expectedError := fmt.Sprintf("longitude %s", mustBeNumericMessage)
 
 	if err := validateLongitude(valueThatCannotBeCoerced); err.Error() != expectedError {
-		t.Errorf("returned the wrong message: got %s want %s", err.Error(), expectedError)
+		test.Fatal(t, err.Error(), expectedError)
 	}
 }
 
@@ -30,7 +32,7 @@ func TestLatitudeThatIsEmpty(t *testing.T) {
 	expectedError := fmt.Sprintf("latitude %s", isRequiredMessage)
 
 	if err := validateLatitude(""); err.Error() != expectedError {
-		t.Errorf("returned the wrong message: got %s want %s", err.Error(), expectedError)
+		test.Fatal(t, err.Error(), expectedError)
 	}
 }
 
@@ -38,31 +40,31 @@ func TestLongitudeThatIsEmpty(t *testing.T) {
 	expectedError := fmt.Sprintf("longitude %s", isRequiredMessage)
 
 	if err := validateLongitude(""); err.Error() != expectedError {
-		t.Errorf("returned the wrong message: got %s want %s", err.Error(), expectedError)
+		test.Fatal(t, err.Error(), expectedError)
 	}
 }
 
 func TestLongitudeOutsideRange(t *testing.T) {
 	if err := validateLongitude(valueOutsideRange); err.Error() != longitudeRangeMessage {
-		t.Errorf("returned the wrong message: got %s want %s", err.Error(), longitudeRangeMessage)
+		t.Fatal(t, err.Error(), longitudeRangeMessage)
 	}
 }
 
 func TestLatitudeOutsideRange(t *testing.T) {
 	if err := validateLatitude(valueOutsideRange); err.Error() != latitudeRangeMessage {
-		t.Errorf("returned the wrong message: got %s want %s", err.Error(), latitudeRangeMessage)
+		test.Fatal(t, err.Error(), latitudeRangeMessage)
 	}
 }
 
 func TestLongitudeWithinRange(t *testing.T) {
 	if err := validateLongitude("179"); err != nil {
-		t.Errorf("returned the wrong message: got %s want nil", err.Error())
+		test.Fatal(t, err.Error(), "nil")
 	}
 }
 
 func TestLatitudeWithinRange(t *testing.T) {
 	if err := validateLatitude("89"); err != nil {
-		t.Errorf("returned the wrong message: got %s want nil", err.Error())
+		test.Fatal(t, err.Error(), "nil")
 	}
 }
 
@@ -70,7 +72,7 @@ func TestConvertTemperatureToFeelingLessThan32(t *testing.T) {
 	temperature := 11.0
 
 	if feeling := convertTemperatureToFeeling(temperature); feeling != "cold" {
-		t.Errorf("returned the wrong feeling: got %s want %s", feeling, "cold")
+		test.Fatal(t, feeling, "cold")
 	}
 }
 
@@ -78,7 +80,7 @@ func TestConvertTemperatureToFeelingGreater32LessThan76(t *testing.T) {
 	temperature := 75.0
 
 	if feeling := convertTemperatureToFeeling(temperature); feeling != "moderate" {
-		t.Errorf("returned the wrong feeling: got %s want %s", feeling, "moderate")
+		test.Fatal(t, feeling, "moderate")
 	}
 }
 
@@ -86,35 +88,35 @@ func TestConvertTemperatureToFeelingGreaterThan76(t *testing.T) {
 	temperature := 100.0
 
 	if feeling := convertTemperatureToFeeling(temperature); feeling != "hot" {
-		t.Errorf("returned the wrong feeling: got %s want %s", feeling, "hot")
+		test.Fatal(t, feeling, "hot")
 	}
 }
 
 func TestFormatOpenWeatherResponseHappyCase(t *testing.T) {
-	weather := &OpenWeatherWeatherResponse{
+	weather := &openweathermap.WeatherResponse{
 		Description: "Snowy",
 	}
 
-	main := &OpenWeatherMainResponse{FeelsLike: 75}
+	main := &openweathermap.MainResponse{FeelsLike: 75}
 
-	openWeatherResponse := OpenWeatherApiResponse{
+	openWeatherResponse := openweathermap.ApiResponse{
 		Main:    main,
 		Code:    200,
-		Weather: []*OpenWeatherWeatherResponse{weather},
+		Weather: []*openweathermap.WeatherResponse{weather},
 	}
 
 	formattedWeatherResponse := formatOpenWeatherResponse(openWeatherResponse)
 	if formattedWeatherResponse.Weather.Condition != weather.Description {
-		t.Errorf(
-			"returned the wrong condition: got %s want %s",
+		test.Fatal(
+			t,
 			formattedWeatherResponse.Weather.Condition,
 			weather.Description,
 		)
 	}
 
 	if formattedWeatherResponse.Weather.Temperature != "moderate" {
-		t.Errorf(
-			"returned the wrong temperature: got %s want %s",
+		test.Fatal(
+			t,
 			formattedWeatherResponse.Weather.Temperature,
 			"moderate",
 		)
@@ -122,47 +124,39 @@ func TestFormatOpenWeatherResponseHappyCase(t *testing.T) {
 }
 
 func TestFormatOpenWeatherResponseMultipleWeathersPicksFirst(t *testing.T) {
-	weather1 := &OpenWeatherWeatherResponse{
+	weather1 := &openweathermap.WeatherResponse{
 		Description: "Snowy",
 	}
 
-	weather2 := &OpenWeatherWeatherResponse{
+	weather2 := &openweathermap.WeatherResponse{
 		Description: "Rainy",
 	}
 
-	main := &OpenWeatherMainResponse{FeelsLike: 75}
+	main := &openweathermap.MainResponse{FeelsLike: 75}
 
-	openWeatherResponse := OpenWeatherApiResponse{
+	openWeatherResponse := openweathermap.ApiResponse{
 		Main:    main,
 		Code:    200,
-		Weather: []*OpenWeatherWeatherResponse{weather1, weather2},
+		Weather: []*openweathermap.WeatherResponse{weather1, weather2},
 	}
 
 	formattedWeatherResponse := formatOpenWeatherResponse(openWeatherResponse)
 	if formattedWeatherResponse.Weather.Condition != weather1.Description {
-		t.Errorf(
-			"returned the wrong condition: got %s want %s",
-			formattedWeatherResponse.Weather.Condition,
-			weather1.Description,
-		)
+		test.Fatal(t, formattedWeatherResponse.Weather.Condition, weather1.Description)
 	}
 }
 
 func TestFormatOpenWeatherResponseNoWeather(t *testing.T) {
-	main := &OpenWeatherMainResponse{FeelsLike: 75}
+	main := &openweathermap.MainResponse{FeelsLike: 75}
 
-	openWeatherResponse := OpenWeatherApiResponse{
+	openWeatherResponse := openweathermap.ApiResponse{
 		Main:    main,
 		Code:    200,
-		Weather: []*OpenWeatherWeatherResponse{},
+		Weather: []*openweathermap.WeatherResponse{},
 	}
 
 	formattedWeatherResponse := formatOpenWeatherResponse(openWeatherResponse)
 	if formattedWeatherResponse.Weather.Condition != defaultCondition {
-		t.Errorf(
-			"returned the wrong condition: got %s want %s",
-			formattedWeatherResponse.Weather.Condition,
-			defaultCondition,
-		)
+		test.Fatal(t, formattedWeatherResponse.Weather.Condition, defaultCondition)
 	}
 }

@@ -1,6 +1,7 @@
-package main
+package customerror
 
 import (
+	"gogo-gadget-weather/serialize"
 	"log"
 	"net/http"
 )
@@ -11,14 +12,14 @@ type ApiErrorResponse struct {
 	Error   string `json:"error"`
 }
 
-func apiError(w http.ResponseWriter, message string, status int, error string) {
+func Api(w http.ResponseWriter, message string, status int, error string) {
 	apiError := ApiErrorResponse{
 		Message: message,
 		Success: false,
 		Error:   error,
 	}
 
-	err := encode(w, status, apiError)
+	err := serialize.Encode(w, status, apiError)
 	if err != nil {
 		log.Println("error encoding apiError: " + err.Error())
 	}

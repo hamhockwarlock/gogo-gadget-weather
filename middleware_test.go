@@ -1,6 +1,9 @@
 package main
 
 import (
+	"gogo-gadget-weather/customerror"
+	"gogo-gadget-weather/serialize"
+	"gogo-gadget-weather/test"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -23,43 +26,30 @@ func TestApiKeyNotPassed(t *testing.T) {
 	wrappedHandler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusUnauthorized {
-		t.Errorf(
-			"handler returned wrong status code: got %v want %v",
-			status,
-			http.StatusUnauthorized,
-		)
+		test.Fatal(t, status, http.StatusUnauthorized)
 	}
 
-	parsed, err := decode[ApiErrorResponse](rr.Result())
+	parsed, err := serialize.Decode[customerror.ApiErrorResponse](rr.Result())
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if success := parsed.Success; success != false {
-		t.Errorf("handler returned the wrong success: got %t want %t", success, false)
+		test.Fatal(t, success, false)
 	}
 
 	if errorMessage := parsed.Error; errorMessage != http.StatusText(http.StatusUnauthorized) {
-		t.Errorf(
-			"handler returned the wrong error: got %s want %s",
-			errorMessage,
-			http.StatusText(http.StatusUnauthorized),
-		)
+		test.Fatal(t, errorMessage, http.StatusText(http.StatusUnauthorized))
 	}
 
 	if message := parsed.Message; message != apiKeyRequiredMessage {
-		t.Errorf(
-			"handler returned the wrong message: got %s want %s",
-			message,
-			apiKeyRequiredMessage,
-		)
+		test.Fatal(t, message, apiKeyRequiredMessage)
 	}
 }
 
 // TestApiKeyPassed calls apiKeyRequired with a request that did pass an API key.
 // If it is passed we return a 200.
 func TestApiKeyPassed(t *testing.T) {
-
 	dummyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
@@ -78,6 +68,6 @@ func TestApiKeyPassed(t *testing.T) {
 	wrappedHandler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+		test.Fatal(t, status, http.StatusOK)
 	}
 }

@@ -1,7 +1,10 @@
-package main
+package weather
 
 import (
 	"fmt"
+	"gogo-gadget-weather/customerror"
+	"gogo-gadget-weather/openweathermap"
+	"gogo-gadget-weather/serialize"
 	"log"
 	"net/http"
 	"strconv"
@@ -15,36 +18,61 @@ const (
 	defaultCondition      = "Can't determine condition"
 )
 
-type Weather struct {
-	Condition   string `json:"condition"`
-	Temperature string `json:"temperature"`
-}
 type WeatherResponse struct {
-	Weather Weather `json:"weather"`
+	Weather struct {
+		Condition   string `json:"condition"`
+		Temperature string `json:"temperature"`
+	} `json:"weather"`
 }
 
-func handleWeatherGet(w http.ResponseWriter, r *http.Request) {
+type weather struct {
+	OpenWeatherMap openweathermap.OpenWeather
+}
+
+func New(ow openweathermap.OpenWeather) *weather {
+	return &weather{
+		OpenWeatherMap: ow,
+	}
+}
+
+type Weather interface {
+	HandleWeatherGet(w http.ResponseWriter, r *http.Request)
+}
+
+func (wtr weather) HandleWeatherGet(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	lat := r.URL.Query().Get("lat")
 	err := validateLatitude(lat)
 	if err = validateLatitude(lat); err != nil {
-		apiError(w, err.Error(), http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+		customerror.Api(
+			w,
+			err.Error(),
+			http.StatusBadRequest,
+			http.StatusText(http.StatusBadRequest),
+		)
 		return
 	}
 
 	long := r.URL.Query().Get("long")
 	if err = validateLongitude(long); err != nil {
-		apiError(w, err.Error(), http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+		customerror.Api(
+			w,
+			err.Error(),
+			http.StatusBadRequest,
+			http.StatusText(http.StatusBadRequest),
+		)
 		return
 	}
 
+	// this can be removed
 	apiKey := r.Header.Get("X-API-KEY")
-	response, err := fetchWeather(apiKey, lat, long)
+	response, err := wtr.OpenWeatherMap.FetchWeather(ctx, lat, long, apiKey)
 	if err != nil {
 		// In a production environment it would be unwise to return back this error so log it
 		// and return a generic message
 		log.Println("Error when fetching weather: " + err.Error())
 		message := "Error processing your request. Please try again or open a support ticket"
-		apiError(
+		customerror.Api(
 			w,
 			message,
 			http.StatusUnprocessableEntity,
@@ -54,14 +82,14 @@ func handleWeatherGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if response.Code == http.StatusOK {
-		err := encode(w, http.StatusOK, formatOpenWeatherResponse(*response))
+		err := serialize.Encode(w, http.StatusOK, formatOpenWeatherResponse(*response))
 		if err != nil {
 			log.Println("Error encoding openweather response: " + err.Error())
 		}
 		return
 	}
 
-	apiError(w, response.Message, response.Code, http.StatusText(response.Code))
+	customerror.Api(w, response.Message, response.Code, http.StatusText(response.Code))
 }
 
 func validateLatitude(value string) error {
@@ -98,18 +126,17 @@ func validateLongitude(value string) error {
 	return nil
 }
 
-func formatOpenWeatherResponse(r OpenWeatherApiResponse) WeatherResponse {
+func formatOpenWeatherResponse(r openweathermap.ApiResponse) WeatherResponse {
+	var weatherRepsonse WeatherResponse
 	condition := defaultCondition
 	if len(r.Weather) > 0 {
 		condition = r.Weather[0].Description
 	}
 
-	return WeatherResponse{
-		Weather: Weather{
-			Temperature: convertTemperatureToFeeling(r.Main.FeelsLike),
-			Condition:   condition,
-		},
-	}
+	weatherRepsonse.Weather.Temperature = convertTemperatureToFeeling(r.Main.FeelsLike)
+	weatherRepsonse.Weather.Condition = condition
+
+	return weatherRepsonse
 }
 
 func convertTemperatureToFeeling(temp float64) string {

@@ -1,4 +1,4 @@
-package main
+package serialize
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func encode[T any](w http.ResponseWriter, status int, v T) error {
+func Encode[T any](w http.ResponseWriter, status int, v T) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
@@ -17,7 +17,7 @@ func encode[T any](w http.ResponseWriter, status int, v T) error {
 	return nil
 }
 
-func decode[T any](r *http.Response) (T, error) {
+func Decode[T any](r *http.Response) (T, error) {
 	var v T
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
 		return v, fmt.Errorf("error decoding %w", err)

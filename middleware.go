@@ -1,10 +1,12 @@
 package main
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"gogo-gadget-weather/customerror"
 	"net/http"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const apiKeyHeaderName = "X-API-KEY"
@@ -21,7 +23,7 @@ func setupMiddleware(r *chi.Mux) {
 func apiKeyRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get(apiKeyHeaderName) == "" {
-			apiError(
+			customerror.Api(
 				w,
 				apiKeyRequiredMessage,
 				http.StatusUnauthorized,
