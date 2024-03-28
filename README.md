@@ -1,6 +1,6 @@
 # Go Go Gadget Weather
 
-This small API returns the weather condition given a latitude and longitude
+This small API returns the weather condition given a latitude and longitude.
 
 ## Dependencies
  * go@1.22.1
