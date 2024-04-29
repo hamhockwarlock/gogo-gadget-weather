@@ -42,7 +42,7 @@ type Weather interface {
 func (wtr weather) HandleWeatherGet(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	lat := r.URL.Query().Get("lat")
-	if err = validateLatitude(lat); err != nil {
+	if err := validateLatitude(lat); err != nil {
 		customerror.Api(
 			w,
 			err.Error(),
@@ -53,7 +53,7 @@ func (wtr weather) HandleWeatherGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	long := r.URL.Query().Get("long")
-	if err = validateLongitude(long); err != nil {
+	if err := validateLongitude(long); err != nil {
 		customerror.Api(
 			w,
 			err.Error(),
