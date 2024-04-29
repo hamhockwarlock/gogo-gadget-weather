@@ -1,4 +1,4 @@
-module github.com/hamhockwarlock/gogo-gadget-weather
+module gogo-gadget-weather
 
 go 1.22.1
 
