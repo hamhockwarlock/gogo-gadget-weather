@@ -42,7 +42,6 @@ type Weather interface {
 func (wtr weather) HandleWeatherGet(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	lat := r.URL.Query().Get("lat")
-	err := validateLatitude(lat)
 	if err = validateLatitude(lat); err != nil {
 		customerror.Api(
 			w,
