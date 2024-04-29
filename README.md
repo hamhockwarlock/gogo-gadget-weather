@@ -24,9 +24,8 @@ This small API returns the weather condition given a latitude and longitude.
 ### Usage
 Getting weather in Berlin
  ```bash
-  curl -X GET \
+  curl --location http://localhost:4242/api/weather?lat=52.52&long=13.41 \ 
     -H "X-API-KEY:$OPENWEATHERMAP_API_KEY" \
-    http://localhost:4242/api/weather?lat=52.52&long=13.41 \
     | jq
  ```
 
